@@ -7,7 +7,12 @@ from tkinter import ttk
 import requests
 
 
-LOGIN_ENDPOINT = 'http://127.0.0.1:8080'
+ENDPOINT = 'http://127.0.0.1:8080'
+
+
+def boot_and_exit(char_id, is_new, token):
+    subprocess.Popen(['./mhf-iel.exe', str(char_id), str(int(is_new)), token])
+    exit()
 
 
 class LoginScreen:
@@ -15,6 +20,7 @@ class LoginScreen:
         self.root = root
         self.username = tk.StringVar()
         self.password = tk.StringVar()
+
         self.error_label = None
         self.frm = ttk.Frame(root, padding=15)
         self.frm.grid(sticky=(tk.W, tk.N, tk.E, tk.S))
@@ -28,37 +34,32 @@ class LoginScreen:
 
         button_frame = ttk.Frame(self.frm)
         button_frame.grid(pady=(10, 0))
-        ttk.Button(button_frame, text="Login", command=self.login).grid(row=0, column=0)
-        # ttk.Button(button_frame, text="Create Account", command=self.create_account).grid(row=0, column=1, padx=(20, 0), sticky=tk.E)
+        ttk.Button(button_frame, text="Login", command=partial(self.connect, 'login')).grid(row=0, column=0)
+        ttk.Button(button_frame, text="Create Account", command=partial(self.connect, 'register')).grid(row=0, column=1, padx=(20, 0), sticky=tk.E)
 
         for child in self.frm.winfo_children():
             child.grid_configure(sticky=(tk.W, tk.E))
 
-    def login(self, *args):
+    def connect(self, action, *args):
         if self.error_label:
             self.error_label.destroy()
 
         try:
-            resp = requests.post(LOGIN_ENDPOINT, json={'username': self.username.get(), 'password': self.password.get()})
-        except Exception as e:
-            self.error_label = ttk.Label(self.frm, text=f"Unable to connect to server: {e}")
-            self.error_label.grid()
-            return
-
-        try:
+            resp = requests.post(f'{ENDPOINT}/{action}', json={'username': self.username.get(), 'password': self.password.get()})
             resp.raise_for_status()
         except requests.HTTPError as e:
-            self.error_label = ttk.Label(self.frm, text=f"Unable to login: {resp.status_code}")
+            self.error_label = ttk.Label(self.frm, text=f"Unable to {action}: {resp.status_code}")
+            self.error_label.grid()
+            return
+        except Exception as e:
+            self.error_label = ttk.Label(self.frm, text=f"Unable to connect to server: {e}")
             self.error_label.grid()
             return
 
         data = resp.json()
         self.frm.destroy()
 
-        CharSelectionScreen(self.root, data['characters'], data['token'])
-
-    def create_account(self, *args):
-        pass
+        CharSelectionScreen(self.root, data.get('characters', []), data['token'])
 
 
 class CharSelectionScreen:
@@ -66,6 +67,8 @@ class CharSelectionScreen:
         self.root = root
         self.token = token
         self.character_id = tk.IntVar()
+
+        self.error_label = None
         self.frm = ttk.Frame(root, padding=15)
         self.frm.grid(sticky=tk.W)
 
@@ -75,10 +78,30 @@ class CharSelectionScreen:
             ttk.Label(char_frm, text=character['name']).grid(row=i, column=1)
             ttk.Button(char_frm, text='Select', command=partial(self.select, character['id'])).grid(row=i, column=2)
 
+        ttk.Button(self.frm, text='Create New Character', command=self.create_character).grid()
+
     def select(self, char_id, *args):
-        print(str(char_id), self.token)
-        subprocess.Popen(['./mhf-iel.exe', str(char_id), self.token])
-        exit()
+        boot_and_exit(char_id, False, self.token)
+
+    def create_character(self, *args):
+        if self.error_label:
+            self.error_label.destroy()
+
+        try:
+            resp = requests.post(f'{ENDPOINT}/character', json={'token': self.token})
+            resp.raise_for_status()
+        except requests.HTTPError as e:
+            self.error_label = ttk.Label(self.frm, text=f"Unable to create character: {resp.status_code}")
+            self.error_label.grid()
+            return
+        except Exception as e:
+            self.error_label = ttk.Label(self.frm, text=f"Unable to connect to server: {e}")
+            self.error_label.grid()
+            return
+
+        data = resp.json()
+        boot_and_exit(data['id'], True, self.token)
+
 
 root = tk.Tk(className="mhf")
 root.columnconfigure(0, weight=1)
