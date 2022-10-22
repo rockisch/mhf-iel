@@ -17,7 +17,14 @@ If you're wondering 'Why use this instead of the original launcher?', here are s
   - Allows storing and displaying extra information. For example, it would be *possible* to get character portraits on the launcher window.
   - Removes the need to modify the launcher (since we're replacing it) and `mhfo-hd.dll` to remove GameGuard, since `mhfo-hd.dll` calls a function provided by the launcher to run GameGuard checks.
 
-It should be noted that currently there's **no GUI available** with this project. The main idea behind it was modeling the data structures in order to be able to directly boot MHF.
+Obs.: It should be noted that the Python GUI on the root is for testing the APIs. A decent GUI will be developed in the future, but some decisions need to be made first.
+
+
+## Usage
+
+If you want to test this, make sure your server is running under the [`newsign`](https://github.com/rockisch/Erupe-1/tree/newsign) branch.
+
+After that, copy `gui.py` and `mhf-iel.exe` (either from the releases page or by compiling it yourself) to the folder MHF is installed. Run `gui.py`, and be happy.
 
 ## Compile
 
@@ -28,9 +35,3 @@ If your Visual Studio is from 2019 or before, it should target x86 by default.
 Otherwise, you can run the 'x86 Native Tools CMD' shortcut, which will set everything for you.
 
 After having a x86 version of `cl` available on your shell, just run `buildCMD.bat` or `buildDLL.bat`.
-
-## Usage
-
-As of right now, you can either build the projet as a DLL or a CMD application. I'm still not sure how I'll implement a GUI for it, which is why both options are available.
-
-Also as of right now, you'll need to provide by hand the data the server would normally send to the client (charID and logintoken), since I don't feel like parsing the current API format to get that info in a platform I might change in the future.
