@@ -4,11 +4,20 @@ MHF default launcher requires IE to login. IE sucks.
 
 This project reverse engineered the MHF launcher in order to make it possible to boot the game directly, without going through `mhf.exe` and `mhl.dll`.
 
-Besides removing the IE requirement, having a custom launcher gives more freedom on how the server communicates with it.
-This makes HTTPS, custom ports, custom formats (JSON) and providing additional information to the launcher possible.
+If you're wondering 'Why use this instead of the original launcher?', here are some of the issues that are are solved by using a custom launcher:
 
-Using this launcher as a base also removes the need to modify the launcher (since we're replacing it) **AND** `mhfo-hd.dll` to disable GameGuard.
-This is because the call `mhfo-hd.dll` does to run GameGuard checks is actually provided by the launcher, so we can just provide a mock function to it.
+- Not being locked to IE.
+  - Should open a sea of possibilities on how to design the launcher.
+  - Won't take 10 seconds for each request.
+  - Game might boot under Linux/Steam deck when using Proton/Wine, since IE was the main reason those weren't even options.
+- Not being locked to the weird way MHF connects to the server.
+  - Allows launcher operations to be implemented using with HTTP(S), JSON, custom ports, etc.
+- Not being locked to the operations and data model the original launcher uses.
+  - Allows implementing new operations, such as adding separate buttons for 'Sign Up' and 'Login'.
+  - Allows storing and displaying extra information. For example, it would be *possible* to get character portraits on the launcher window.
+  - Removes the need to modify the launcher (since we're replacing it) and `mhfo-hd.dll` to remove GameGuard, since `mhfo-hd.dll` calls a function provided by the launcher to run GameGuard checks.
+
+It should be noted that currently there's **no GUI available** with this project. The main idea behind it was modeling the data structures in order to be able to directly boot MHF.
 
 ## Compile
 
