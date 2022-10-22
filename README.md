@@ -7,7 +7,7 @@ This project reverse engineered the MHF launcher in order to make it possible to
 Besides removing the IE requirement, having a custom launcher gives more freedom on how the server communicates with it.
 This makes HTTPS, custom ports, custom formats (JSON) and providing additional information to the launcher possible.
 
-The final launcher also removes the need to modify the launcher (since we're replacing it) **AND** `mhfo-hd.dll` to disable GameGuard.
+Using this launcher as a base also removes the need to modify the launcher (since we're replacing it) **AND** `mhfo-hd.dll` to disable GameGuard.
 This is because the call `mhfo-hd.dll` does to run GameGuard checks is actually provided by the launcher, so we can just provide a mock function to it.
 
 ## Compile
