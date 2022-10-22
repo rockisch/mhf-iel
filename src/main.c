@@ -103,7 +103,7 @@ void init_init_config() {
     INITDATA.SERVER_SEL = GetPrivateProfileIntA("LAUNCH", "SERVER_SEL", 1, INITDATA.ini_name);
 }
 
-int start(uint32_t charID, char *logintoken, char **messages, size_t messages_size) {
+int start(uint32_t char_id, uint8_t is_new, char *logintoken, char **messages, size_t messages_size) {
     char buf[BUFSIZE];
 
     strncpy(INITDATA.server_sign_token, logintoken, 16);
@@ -112,15 +112,15 @@ int start(uint32_t charID, char *logintoken, char **messages, size_t messages_si
     strcpy(INITDATA.server_sign_host, "mhf-n.capcom.com.tw");
     strcpy(INITDATA.alt_ip_address, "203.191.249.36:8080");
 
-    INITDATA.server_sign_character_id_selected_1 = charID;
-    INITDATA.server_sign_character_id_selected_2 = charID;
+    INITDATA.server_sign_character_id_selected_1 = char_id;
+    INITDATA.server_sign_character_id_selected_2 = char_id;
     INITDATA.server_sign_0xffffffff = 0xffffffff;
     INITDATA.server_sign_current_ts = time(NULL);
     INITDATA.server_sign_patch_count = 0x0;
     INITDATA.server_sign_entrance_count = 0x1;
-    INITDATA.server_sign_0_to_3 = 0x0;
+    INITDATA.server_sign_character_status = is_new ? 2 : 0;
     INITDATA.server_sign_exp_hr = 0x0;
-    INITDATA.server_sign_character_id_list[0] = charID;
+    INITDATA.server_sign_character_id_list[0] = char_id;
     INITDATA.server_sign_expiry_ts = time(NULL) + (3600 * 24 * 7);
 
     get_current_path(buf, BUFSIZE);

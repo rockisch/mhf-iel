@@ -40,7 +40,9 @@ struct initdata {
     char server_sign_host[32 * sizeof(uint32_t)]; // 448d68
     uint32_t server_sign_patch_count; // 448e68
     uint32_t server_sign_entrance_count; // 448e6c
-    uint32_t server_sign_0_to_3; // 448e70 -- 2 if old GR is present, 1 or 0 is defined by an unkown server variable
+    // 0 if existing, 2 if new. I can see from the disassembly it can also be 1, which the game seems to treat as 2,
+    // but that's based on a byte set on the individual character data that I couldn't find where to set.
+    uint32_t server_sign_character_status; // 448e70
     uint32_t unk448e74_0xe; // 448e74 -- something based on 'patch_count', if it differs from 0 this value gets zeroed
     uint32_t server_sign_exp_hr; // 448e78
     char server_sign_character_name_sel[4 * sizeof(uint32_t)]; // 448e7c

@@ -4,5 +4,5 @@
 #include "main.c"
 
 int DllMain(struct IElessData data) {
-    return start(data.charID, data.logintoken, data.messages, data.message_size);
+    return start(data.char_id, data.is_new, data.logintoken, data.messages, data.message_size);
 }

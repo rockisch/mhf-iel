@@ -4,7 +4,8 @@
 #include <inttypes.h>
 
 struct IElessData {
-    uint32_t charID;
+    uint32_t char_id;
+    uint8_t is_new;
     char *logintoken;
     char **messages;
     size_t message_size;
