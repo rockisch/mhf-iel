@@ -1,0 +1,5 @@
+.vscode/
+build/
+
+src/test.c
+buildtest.bat
