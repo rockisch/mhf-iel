@@ -17,21 +17,20 @@ If you're wondering 'Why use this instead of the original launcher?', here are s
   - Allows storing and displaying extra information. For example, it would be *possible* to get character portraits on the launcher window.
   - Removes the need to modify the launcher (since we're replacing it) and `mhfo-hd.dll` to remove GameGuard, since `mhfo-hd.dll` calls a function provided by the launcher to run GameGuard checks.
 
-Obs.: It should be noted that the Python GUI on the root is for testing the APIs. A decent GUI will be developed in the future, but some decisions need to be made first.
-
 
 ## Usage
 
-If you want to test this, make sure your server is running under the [`newsign`](https://github.com/rockisch/Erupe-1/tree/newsign) branch.
+If calling from another Rust project, make sure it itself is targeting `nightly-i686-pc-windows-msvc`, and just call `run` with the correct parameters. The idea at the moment is that the `Config` structure can be created from user provided settings, while `MhfConfig` contain data returned from [signv2server](https://github.com/ZeruLight/Erupe/tree/main/server/signv2server), but this might change in the future.
 
-After that, copy `gui.py` and `mhf-iel.exe` (either from the releases page or by compiling it yourself) to the folder MHF is installed. Run `gui.py`, and be happy.
+You use the [CLI interface](mhf-iel-cli/README.md) to run this project from any other program, and without the `i686` limitation.
 
-## Compile
+Feel free to create a ticket if you need another way to integrate this lib into your app (`.dll`, bindings for static linking, etc).
 
-In order to compile the project, a x86/32bit version of `cl` should be used, since we need to interface with `mhfo-hd.dll`, which was built for x86.
+## Compiling
 
-The easiest way to get `cl` is by installing Visual Studio's 'Desktop C++ Dev' package.
-If your Visual Studio is from 2019 or before, it should target x86 by default.
-Otherwise, you can run the 'x86 Native Tools CMD' shortcut, which will set everything for you.
+Before running `cargo build`, make sure you have the `nightly` toolchain and the `i686-pc-windows-msvc` target intalled:
 
-After having a x86 version of `cl` available on your shell, just run `buildCMD.bat` or `buildDLL.bat`.
+```
+rustup toolchain install nightly
+rustup target add i686-pc-windows-msvc
+```

@@ -1,0 +1,20 @@
+[workspace]
+members = ["mhf-iel-cli"]
+
+[package]
+name = "mhf-iel"
+version = "0.1.0"
+edition = "2021"
+
+[workspace.dependencies]
+serde = { version = "1.0", features = ["derive"] }
+
+[dependencies]
+serde = { workspace = true }
+smart-default = "0.7.1"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies.windows]
+version = "0.51.1"
+features = ["Win32_Foundation", "Win32_System_LibraryLoader", "Win32_System_Threading", "Win32_Security", "Win32_UI_Input_KeyboardAndMouse", "Win32_UI_TextServices", "Win32_System_Memory", "Win32_System_WindowsProgramming"]

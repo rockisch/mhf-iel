@@ -1,0 +1,33 @@
+{
+    "char_id": 1,
+    "char_name": "char_abc",
+    "char_new": false,
+    "char_hr": 999,
+    "char_gr": 50,
+    "char_ids": [
+        1,
+        2
+    ],
+    "user_rights": 12,
+    "user_token": "KySJuNnR2PJu00Uw",
+    "user_name": "user_abc",
+    "user_password": "123456",
+    "entrance_count": 1,
+    "current_ts": 0,
+    "expiry_ts": 4294967295,
+    "messages": [
+        {
+            "message": "<BODY>this is a test 1<BODY>",
+            "flags": 0
+        }
+    ],
+    "mez_event_id": 1,
+    "mez_start": 0,
+    "mez_end": 0,
+    "mez_solo_tickets": 10,
+    "mez_group_tickets": 4,
+    "mez_stalls": [
+        "TokotokoPartnya",
+        "Pachinko"
+    ]
+}
