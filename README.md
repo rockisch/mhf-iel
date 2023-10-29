@@ -20,9 +20,9 @@ If you're wondering 'Why use this instead of the original launcher?', here are s
 
 ## Usage
 
-If calling from another Rust project, make sure it itself is targeting `nightly-i686-pc-windows-msvc`, and just call `run` with the correct parameters. The idea at the moment is that the `Config` structure can be created from user provided settings, while `MhfConfig` contain data returned from [signv2server](https://github.com/ZeruLight/Erupe/tree/main/server/signv2server), but this might change in the future.
+If calling from another Rust project, make sure it itself is targeting `nightly-i686-pc-windows-msvc`, and just call `run` with the correct parameters. The idea at the moment is that most of these parameters will be returned from the [signv2server](https://github.com/ZeruLight/Erupe/tree/main/server/signv2server) endpoints, but this might change in the future.
 
-You use the [CLI interface](mhf-iel-cli/README.md) to run this project from any other program, and without the `i686` limitation.
+You can also use the [CLI interface](mhf-iel-cli/README.md) to run this project from any other program, and without the `i686` limitation.
 
 Feel free to create a ticket if you need another way to integrate this lib into your app (`.dll`, bindings for static linking, etc).
 

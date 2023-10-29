@@ -1,29 +1,24 @@
-#![windows_subsystem = "windows"]
-use mhf_iel::{Config, MhfConfig};
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+use mhf_iel::MhfConfig;
 
-use std::{fs::File, path::PathBuf};
+use std::{fs::File, path::PathBuf, process::exit};
 
 use clap::Parser;
 
 #[derive(Parser, Debug, Default)]
-#[command(about)]
+#[command(about = Some("Runs MHF. Config data can be specified through arguments, and defaults to a 'config.json' file in the current folder."))]
 pub struct CliConfig {
-    #[arg(
-        long,
-        help = "JSON config file (defaults to 'config.json' in current folder"
-    )]
+    #[arg(long, help = "JSON config file")]
     pub config_file: Option<PathBuf>,
-    #[arg(
-        long,
-        help = "JSON config file (defaults to 'config.json' in current folder"
-    )]
+    #[arg(long, help = "JSON config data")]
     pub config_data: Option<String>,
-    #[arg(help = "game folder (defaults to current folder)")]
-    pub game_folder: Option<PathBuf>,
 }
 
 fn main() {
-    let cli_config = CliConfig::parse();
+    let cli_config = CliConfig::try_parse().unwrap_or_else(|e| {
+        eprintln!("{e}");
+        exit(1);
+    });
     let config_data = cli_config
         .config_data
         .or_else(|| {
@@ -33,11 +28,18 @@ fn main() {
                 .and_then(|v| File::open(v).ok())
                 .and_then(|v| std::io::read_to_string(v).ok())
         })
-        .expect("unable to locate 'config.json' file");
-    let mhf_config: MhfConfig = serde_json::from_str(&config_data).unwrap();
-    let config = Config {
-        game_folder: cli_config.game_folder,
-        mhf_flags: vec![],
-    };
-    mhf_iel::run(config, mhf_config).unwrap();
+        .unwrap_or_else(|| {
+            eprintln!("unable to locate 'config.json' file");
+            exit(2);
+        });
+    let mhf_config: MhfConfig = serde_json::from_str(&config_data).unwrap_or_else(|e| {
+        eprintln!("error parsing config data: {}", e);
+        exit(3);
+    });
+    let result = mhf_iel::run(mhf_config);
+    if let Err(e) = result {
+        eprintln!("error running mhf: {}", e);
+        exit(4);
+    }
+    exit(0);
 }

@@ -290,15 +290,17 @@ impl Data {
     }
 }
 
-pub fn run_mhf(config: crate::Config, mhf_config: crate::MhfConfig) -> Result<isize> {
-    let game_folder = config
-        .game_folder
-        .or_else(|| std::env::current_dir().ok())
-        .ok_or(Error::GamePath)?;
-    std::env::set_current_dir(&game_folder).or(Err(Error::GamePath))?;
-    let mut game_folder_name = game_folder.to_str().ok_or(Error::GamePath)?.to_owned();
-    if !game_folder_name.ends_with(&['/', '\\']) {
-        game_folder_name.push('/');
+pub fn run_mhf(config: crate::MhfConfig) -> Result<isize> {
+    let mhf_folder = match &config.mhf_folder {
+        Some(mhf_folder) => {
+            std::env::set_current_dir(mhf_folder).or(Err(Error::GamePath))?;
+            mhf_folder.clone()
+        }
+        None => std::env::current_dir().or(Err(Error::GamePath))?,
+    };
+    let mut mhf_folder_name = mhf_folder.to_str().ok_or(Error::GamePath)?.to_owned();
+    if !mhf_folder_name.ends_with(&['/', '\\']) {
+        mhf_folder_name.push('/');
     }
 
     // Init
@@ -327,32 +329,31 @@ pub fn run_mhf(config: crate::Config, mhf_config: crate::MhfConfig) -> Result<is
     data.proc_5 = mock_proc as usize;
 
     data.init_config();
-    data.init_global_alloc(&mhf_config);
-    data.init_cli(&config.mhf_flags);
+    data.init_global_alloc(&config);
+    if let Some(mhf_flags) = &config.mhf_flags {
+        data.init_cli(mhf_flags);
+    }
 
     // Char
-    data.selected_char_id_1 = mhf_config.char_id;
-    data.selected_char_id_2 = mhf_config.char_id;
-    bufcopy(
-        &mut data.selected_char_name,
-        mhf_config.char_name.as_bytes(),
-    );
-    data.selected_char_hr = mhf_config.char_hr;
-    data.selected_char_gr = mhf_config.char_gr;
-    data.selected_char_status = if mhf_config.char_new { 2 } else { 0 };
-    data.char_ids_count = mhf_config.char_ids.len() as u32;
-    bufcopy(&mut data.char_ids, &mhf_config.char_ids);
+    data.selected_char_id_1 = config.char_id;
+    data.selected_char_id_2 = config.char_id;
+    bufcopy(&mut data.selected_char_name, config.char_name.as_bytes());
+    data.selected_char_hr = config.char_hr;
+    data.selected_char_gr = config.char_gr;
+    data.selected_char_status = if config.char_new { 2 } else { 0 };
+    data.char_ids_count = config.char_ids.len() as u32;
+    bufcopy(&mut data.char_ids, &config.char_ids);
 
     // User
-    bufcopy(&mut data.user_name, mhf_config.user_name.as_bytes());
-    bufcopy(&mut data.user_password, mhf_config.user_password.as_bytes());
-    bufcopy(&mut data.user_token, mhf_config.user_token.as_bytes());
-    data.user_rights = mhf_config.user_rights;
+    bufcopy(&mut data.user_name, config.user_name.as_bytes());
+    bufcopy(&mut data.user_password, config.user_password.as_bytes());
+    bufcopy(&mut data.user_token, config.user_token.as_bytes());
+    data.user_rights = config.user_rights;
 
     // Server
-    data.server_entrance_count = mhf_config.entrance_count;
-    data.server_current_ts = mhf_config.current_ts;
-    data.server_expiry_ts = mhf_config.expiry_ts;
+    data.server_entrance_count = config.entrance_count;
+    data.server_current_ts = config.current_ts;
+    data.server_expiry_ts = config.expiry_ts;
 
     // Meta
     bufcopy(&mut data.mutex_master_name, mutex_master_name.as_bytes());
@@ -360,8 +361,8 @@ pub fn run_mhf(config: crate::Config, mhf_config: crate::MhfConfig) -> Result<is
         &mut data.mutex_master_ready_name,
         mutex_master_ready_name.as_bytes(),
     );
-    bufcopy(&mut data.path1, game_folder_name.as_bytes());
-    bufcopy(&mut data.path2, game_folder_name.as_bytes());
+    bufcopy(&mut data.path1, mhf_folder_name.as_bytes());
+    bufcopy(&mut data.path2, mhf_folder_name.as_bytes());
     bufcopy(&mut data.ini_file, b"mhf.ini");
     bufcopy(&mut data.remote_addr, b"127.0.0.1:53310");
     bufcopy(&mut data.remote_host, b"mhf-n.capcom.com.tw");

@@ -12,7 +12,7 @@ use std::path::PathBuf;
 use serde::Deserialize;
 
 #[repr(u8)]
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug, Clone, Copy, Deserialize)]
 pub enum MhfFlags {
     Selfup = 1,
     Restat = 2,
@@ -27,7 +27,7 @@ pub enum MhfFlags {
 }
 
 #[repr(u32)]
-#[derive(Deserialize, Debug, Copy, Clone)]
+#[derive(Debug, Clone, Copy, Deserialize)]
 pub enum MezFesStalls {
     TokotokoPartnya = 2,
     Pachinko = 3,
@@ -39,13 +39,13 @@ pub enum MezFesStalls {
     StallMap = 10,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Debug, Deserialize)]
 pub struct MhfConfigMessage {
     pub flags: u16,
     pub message: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Debug, Deserialize)]
 pub struct MhfConfig {
     pub char_id: u32,
     pub char_name: String,
@@ -67,17 +67,15 @@ pub struct MhfConfig {
     pub mez_solo_tickets: u32,
     pub mez_group_tickets: u32,
     pub mez_stalls: Vec<MezFesStalls>,
+
+    // Optional
+    pub mhf_folder: Option<PathBuf>,
+    pub mhf_flags: Option<Vec<MhfFlags>>,
 }
 
-#[derive(Debug)]
-pub struct Config {
-    pub game_folder: Option<PathBuf>,
-    pub mhf_flags: Vec<MhfFlags>,
-}
-
-pub fn run(config: Config, mhf_config: MhfConfig) -> Result<isize> {
-    if mhf_config.user_token.len() != 16 {
+pub fn run(config: MhfConfig) -> Result<isize> {
+    if config.user_token.len() != 16 {
         return Err(Error::TokenLength);
     }
-    mhf::run_mhf(config, mhf_config)
+    mhf::run_mhf(config)
 }

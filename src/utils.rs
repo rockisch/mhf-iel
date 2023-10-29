@@ -6,7 +6,8 @@ use windows::{
 use crate::{Error, Result};
 
 pub fn bufcopy<T: Copy>(s: &mut [T], v: &[T]) {
-    s[..v.len()].copy_from_slice(v)
+    let l = s.len().min(v.len());
+    s[..l].copy_from_slice(&v[..l])
 }
 
 pub fn get_mutex_name(s: &str) -> String {
