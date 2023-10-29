@@ -45,7 +45,7 @@ pub struct MhfConfigMessage {
     pub message: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 pub struct MhfConfig {
     pub char_id: u32,
     pub char_name: String,
