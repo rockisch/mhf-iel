@@ -40,27 +40,27 @@ pub enum MezFesStalls {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct MhfConfigMessage {
+pub struct MhfConfigMessage<'a> {
     pub flags: u16,
-    pub message: String,
+    pub message: &'a str,
 }
 
 #[derive(Debug, Deserialize, Default)]
-pub struct MhfConfig {
+pub struct MhfConfig<'a> {
     pub char_id: u32,
-    pub char_name: String,
+    pub char_name: &'a str,
     pub char_gr: u32,
     pub char_hr: u32,
     pub char_ids: Vec<u32>,
     pub char_new: bool,
-    pub user_token: String,
-    pub user_name: String,
-    pub user_password: String,
+    pub user_token: &'a str,
+    pub user_name: &'a str,
+    pub user_password: &'a str,
     pub user_rights: u32,
     pub entrance_count: u32,
     pub current_ts: u32,
     pub expiry_ts: u32,
-    pub messages: Vec<MhfConfigMessage>,
+    pub messages: Vec<MhfConfigMessage<'a>>,
     pub mez_event_id: u32,
     pub mez_start: u32,
     pub mez_end: u32,
