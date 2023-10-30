@@ -11,7 +11,7 @@ serde = { version = "1.0", features = ["derive"] }
 
 [dependencies]
 serde = { workspace = true }
-smart-default = "0.7.1"
+num_enum = "0.7"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

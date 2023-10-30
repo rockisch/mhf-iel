@@ -1,5 +1,5 @@
 use crate::utils::bufcopy;
-use crate::{utils, Error, MhfConfig, MhfFlags, Result};
+use crate::{utils, CliFlags, Error, MhfConfig, Result};
 
 use windows::core::s;
 use windows::Win32::Foundation::{FARPROC, HANDLE, HGLOBAL, HMODULE};
@@ -148,20 +148,20 @@ struct Data {
 
 #[repr(C)]
 struct GlobalData {
-    _pad_0x0000: [u8; 0xa00],      // 0000
-    _pad_0x0a00: [u8; 0xc],        // 0a00
-    messages_count: [u32; 0x4],    // 0a0c
-    _pad_0x0a10: [u8; 0x8],        // 0a1c
-    messages_flags: [u16; 0x4],    // 0a24
-    messages: [[u8; 0x1000]; 0x4], // 0a2c
-    _filter: [u8; 0x3000],         // 4a2c
-    _pad_0x4a2c: [u8; 0x1080],     // 7a2c
-    mez_event_id: u32,             // 8aac
-    mez_start: u32,                // 8ab0
-    mez_end: u32,                  // 8ab4
-    mez_solo_tickets: u32,         // 8ab8
-    mez_group_tickets: u32,        // 8abc
-    mez_stalls: [u32; 0x8],        // 8ac0
+    _pad_0x0000: [u8; 0xa00],           // 0000
+    _pad_0x0a00: [u8; 0xc],             // 0a00
+    notifications_count: [u32; 0x4],    // 0a0c
+    _pad_0x0a10: [u8; 0x8],             // 0a1c
+    notifications_flags: [u16; 0x4],    // 0a24
+    notifications: [[u8; 0x1000]; 0x4], // 0a2c
+    _filter: [u8; 0x3000],              // 4a2c
+    _pad_0x4a2c: [u8; 0x1080],          // 7a2c
+    mez_event_id: u32,                  // 8aac
+    mez_start: u32,                     // 8ab0
+    mez_end: u32,                       // 8ab4
+    mez_solo_tickets: u32,              // 8ab8
+    mez_group_tickets: u32,             // 8abc
+    mez_stalls: [u32; 0x8],             // 8ac0
 }
 
 // TODO: this might be needed in the future
@@ -176,10 +176,13 @@ impl Data {
         unsafe { global_ptr.write_bytes(0, 0x8ae0) };
         {
             let global_data = unsafe { &mut *(global_ptr as *mut GlobalData) };
-            for (i, message) in mhf_config.messages.iter().enumerate() {
-                global_data.messages_count[i] = message.message.len() as u32;
-                global_data.messages_flags[i] = message.flags;
-                bufcopy(&mut global_data.messages[i], message.message.as_bytes());
+            for (i, notification) in mhf_config.notifications.iter().enumerate() {
+                global_data.notifications_count[i] = notification.data.len() as u32;
+                global_data.notifications_flags[i] = notification.flags;
+                bufcopy(
+                    &mut global_data.notifications[i],
+                    notification.data.as_bytes(),
+                );
             }
             global_data.mez_event_id = mhf_config.mez_event_id;
             global_data.mez_start = mhf_config.mez_start;
@@ -198,34 +201,34 @@ impl Data {
             .unwrap();
     }
 
-    fn init_cli(&mut self, mhf_flags: &[MhfFlags]) {
+    fn init_cli(&mut self, mhf_flags: &[CliFlags]) {
         for flag in mhf_flags {
             match flag {
-                MhfFlags::Selfup => self.cmd_flags_1 = 1,
-                MhfFlags::Restat => self.cmd_flags_1 = 2,
-                MhfFlags::Autolc => self.cmd_flags_1 = 3,
-                MhfFlags::Hanres => self.cmd_flags_1 = 4,
-                MhfFlags::DmmBoot => {
+                CliFlags::Selfup => self.cmd_flags_1 = 1,
+                CliFlags::Restat => self.cmd_flags_1 = 2,
+                CliFlags::Autolc => self.cmd_flags_1 = 3,
+                CliFlags::Hanres => self.cmd_flags_1 = 4,
+                CliFlags::DmmBoot => {
                     self.cmd_flags_1 = 5;
                     self.cmd_dmm = 1;
                 }
-                MhfFlags::DmmSelfup => {
+                CliFlags::DmmSelfup => {
                     self.cmd_flags_1 = 6;
                     self.cmd_dmm = 1;
                 }
-                MhfFlags::DmmAutolc => {
+                CliFlags::DmmAutolc => {
                     self.cmd_flags_1 = 7;
                     self.cmd_dmm = 1;
                 }
-                MhfFlags::DmmReboot => {
+                CliFlags::DmmReboot => {
                     self.cmd_flags_1 = 8;
                     self.cmd_dmm = 1;
                 }
-                MhfFlags::Npge => {
+                CliFlags::Npge => {
                     self.cmd_flags_1 = 9;
                     self.cmd_flags_2 |= 6;
                 }
-                MhfFlags::NpMhfoTest => self.cmd_flags_2 |= 4,
+                CliFlags::NpMhfoTest => self.cmd_flags_2 |= 4,
             }
         }
     }
