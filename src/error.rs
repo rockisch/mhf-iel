@@ -4,7 +4,8 @@ use std::fmt::Display;
 pub enum Error {
     GamePath,
     Mutex,
-    DllNotFound,
+    GlobalAlloc,
+    Dll,
     ProcNotFound,
     TokenLength,
 }
@@ -13,8 +14,9 @@ impl Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::GamePath => write!(f, "unable to find path to game"),
-            Self::Mutex => write!(f, "unable to create game mutexes"),
-            Self::DllNotFound => write!(f, "unable to find mhfo-hd.dll in the specified game path"),
+            Self::Mutex => write!(f, "unable to create or free game mutexes"),
+            Self::GlobalAlloc => write!(f, "unable to create or free game global alloc"),
+            Self::Dll => write!(f, "unable to load or free mhfo dll"),
             Self::ProcNotFound => write!(f, "unable to find mhDLL_Main proc in mhfo-hd.dll"),
             Self::TokenLength => write!(f, "user token must have a length of 16"),
         }

@@ -2,10 +2,10 @@ use crate::utils::bufcopy;
 use crate::{utils, CliFlags, Error, MhfConfig, Result};
 
 use windows::core::s;
-use windows::Win32::Foundation::{FARPROC, HANDLE, HGLOBAL, HMODULE};
+use windows::Win32::Foundation::{FreeLibrary, FARPROC, HANDLE, HGLOBAL, HMODULE};
 use windows::Win32::System::LibraryLoader::GetModuleHandleA;
 use windows::Win32::System::LibraryLoader::{GetProcAddress, LoadLibraryA};
-use windows::Win32::System::Memory::{GlobalAlloc, GlobalLock, GlobalUnlock, GLOBAL_ALLOC_FLAGS};
+use windows::Win32::System::Memory::{GlobalLock, GlobalUnlock};
 use windows::Win32::System::WindowsProgramming::{GetPrivateProfileIntA, GetPrivateProfileStringA};
 use windows::Win32::UI::Input::KeyboardAndMouse::GetKeyboardLayout;
 use windows::Win32::UI::TextServices::HKL;
@@ -148,20 +148,20 @@ struct Data {
 
 #[repr(C)]
 struct GlobalData {
-    _pad_0x0000: [u8; 0xa00],           // 0000
-    _pad_0x0a00: [u8; 0xc],             // 0a00
-    notifications_count: [u32; 0x4],    // 0a0c
-    _pad_0x0a10: [u8; 0x8],             // 0a1c
-    notifications_flags: [u16; 0x4],    // 0a24
-    notifications: [[u8; 0x1000]; 0x4], // 0a2c
-    _filter: [u8; 0x3000],              // 4a2c
-    _pad_0x4a2c: [u8; 0x1080],          // 7a2c
-    mez_event_id: u32,                  // 8aac
-    mez_start: u32,                     // 8ab0
-    mez_end: u32,                       // 8ab4
-    mez_solo_tickets: u32,              // 8ab8
-    mez_group_tickets: u32,             // 8abc
-    mez_stalls: [u32; 0x8],             // 8ac0
+    _pad_0x0000: [u8; 0xa00],     // 0000
+    _pad_0x0a00: [u8; 0xc],       // 0a00
+    notices_count: [u32; 0x4],    // 0a0c
+    _pad_0x0a10: [u8; 0x8],       // 0a1c
+    notices_flags: [u16; 0x4],    // 0a24
+    notices: [[u8; 0x1000]; 0x4], // 0a2c
+    _filter: [u8; 0x3000],        // 4a2c
+    _pad_0x4a2c: [u8; 0x1080],    // 7a2c
+    mez_event_id: u32,            // 8aac
+    mez_start: u32,               // 8ab0
+    mez_end: u32,                 // 8ab4
+    mez_solo_tickets: u32,        // 8ab8
+    mez_group_tickets: u32,       // 8abc
+    mez_stalls: [u32; 0x8],       // 8ac0
 }
 
 // TODO: this might be needed in the future
@@ -171,18 +171,14 @@ struct GlobalData {
 
 impl Data {
     fn init_global_alloc(&mut self, mhf_config: &MhfConfig) {
-        self.global_alloc = unsafe { GlobalAlloc(GLOBAL_ALLOC_FLAGS(0x42), 0x8ae0) }.unwrap();
         let global_ptr = unsafe { GlobalLock(self.global_alloc) };
         unsafe { global_ptr.write_bytes(0, 0x8ae0) };
         {
             let global_data = unsafe { &mut *(global_ptr as *mut GlobalData) };
-            for (i, notification) in mhf_config.notifications.iter().enumerate() {
-                global_data.notifications_count[i] = notification.data.len() as u32;
-                global_data.notifications_flags[i] = notification.flags;
-                bufcopy(
-                    &mut global_data.notifications[i],
-                    notification.data.as_bytes(),
-                );
+            for (i, notice) in mhf_config.notices.iter().enumerate() {
+                global_data.notices_count[i] = notice.data.len() as u32;
+                global_data.notices_flags[i] = notice.flags;
+                bufcopy(&mut global_data.notices[i], notice.data.as_bytes());
             }
             global_data.mez_event_id = mhf_config.mez_event_id;
             global_data.mez_start = mhf_config.mez_start;
@@ -310,15 +306,17 @@ pub fn run_mhf(config: crate::MhfConfig) -> Result<isize> {
     let main_module = unsafe { GetModuleHandleA(None).unwrap() };
     let keyboard_layout = unsafe { GetKeyboardLayout(0) };
     let mutex_master_name = utils::get_mutex_name("MHF_MASTER");
-    let mutex_master = utils::create_mutex(&mutex_master_name)?;
+    let mutex_master = utils::get_or_create_mutex(&mutex_master_name)?;
     let mutex_master_ready_name = utils::get_mutex_name("MHF_MASTER_READY");
-    let mutex_master_ready = utils::create_mutex(&mutex_master_ready_name)?;
+    let mutex_master_ready = utils::get_or_create_mutex(&mutex_master_ready_name)?;
+    let global_alloc = utils::create_global_alloc()?;
 
     let data = Box::<Data>::new_zeroed();
     let mut data = unsafe { data.assume_init() };
     data.main_module = main_module;
     data.mutex_master = mutex_master;
     data.mutex_master_ready = mutex_master_ready;
+    data.global_alloc = global_alloc;
     data.keyboard_layout = keyboard_layout;
     data.fixed_448a64_0x0 = 0x0;
     data.fixed_448ed0_0x1 = 0x1;
@@ -367,12 +365,19 @@ pub fn run_mhf(config: crate::MhfConfig) -> Result<isize> {
     bufcopy(&mut data.path1, mhf_folder_name.as_bytes());
     bufcopy(&mut data.path2, mhf_folder_name.as_bytes());
     bufcopy(&mut data.ini_file, b"mhf.ini");
-    bufcopy(&mut data.remote_addr, b"127.0.0.1:53310");
-    bufcopy(&mut data.remote_host, b"mhf-n.capcom.com.tw");
-    bufcopy(&mut data.alt_ip_address, b"203.191.249.36:8080");
+    bufcopy(
+        &mut data.remote_addr,
+        format!("{}:{}", config.server_host, config.server_port).as_bytes(),
+    );
+    bufcopy(&mut data.remote_host, config.server_host.as_bytes());
+    bufcopy(
+        &mut data.alt_ip_address,
+        format!("{}:8080", config.server_host).as_bytes(),
+    );
 
     // Dll
-    data.mhfo_module = unsafe { LoadLibraryA(s!("mhfo-hd.dll")) }.or(Err(Error::DllNotFound))?;
+    let mhfo_module = unsafe { LoadLibraryA(s!("mhfo-hd.dll")) }.or(Err(Error::Dll))?;
+    data.mhfo_module = mhfo_module;
     data.mhddl_main = unsafe { GetProcAddress(data.mhfo_module, s!("mhDLL_Main")) };
     let proc = data.mhddl_main.ok_or(Error::ProcNotFound)?;
     // I'm pretty sure this should be "stdcall", but that causes the caller to 'sub esp, 4' without pushing
@@ -386,6 +391,9 @@ pub fn run_mhf(config: crate::MhfConfig) -> Result<isize> {
     data.inner_ptr_3_449198 = &data.inner_3 as *const _ as usize;
 
     let result = unsafe { proc(Box::into_raw(data)) };
+
+    unsafe { FreeLibrary(mhfo_module) }.or(Err(Error::Dll))?;
+    utils::release_global_alloc(global_alloc)?;
 
     Ok(result)
 }
