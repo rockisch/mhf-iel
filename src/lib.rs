@@ -6,11 +6,32 @@ mod utils;
 
 pub use error::Error;
 pub use error::Result;
+use serde::Serialize;
 
 use std::path::PathBuf;
 
 use num_enum::TryFromPrimitive;
 use serde::Deserialize;
+
+#[repr(u8)]
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    Serialize,
+    Deserialize,
+    TryFromPrimitive,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+)]
+pub enum MhfVersion {
+    #[default]
+    ZZ = 1,
+    F5 = 2,
+}
 
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, Deserialize, TryFromPrimitive)]
@@ -71,6 +92,7 @@ pub struct MhfConfig {
     pub mez_solo_tickets: u32,
     pub mez_group_tickets: u32,
     pub mez_stalls: Vec<MezFesStall>,
+    pub version: MhfVersion,
 
     // Optional
     pub mhf_folder: Option<PathBuf>,

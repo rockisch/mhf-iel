@@ -1,5 +1,5 @@
 use crate::utils::bufcopy;
-use crate::{utils, CliFlags, Error, MhfConfig, Result};
+use crate::{utils, CliFlags, Error, MhfConfig, MhfVersion, Result};
 
 use windows::core::s;
 use windows::Win32::Foundation::{FreeLibrary, FARPROC, HANDLE, HGLOBAL, HMODULE};
@@ -376,7 +376,11 @@ pub fn run_mhf(config: crate::MhfConfig) -> Result<isize> {
     );
 
     // Dll
-    let mhfo_module = unsafe { LoadLibraryA(s!("mhfo-hd.dll")) }.or(Err(Error::Dll))?;
+    let dll_name = match config.version {
+        MhfVersion::F5 => s!("mhfo.dll"),
+        MhfVersion::ZZ => s!("mhfo-hd.dll"),
+    };
+    let mhfo_module = unsafe { LoadLibraryA(dll_name) }.or(Err(Error::Dll))?;
     data.mhfo_module = mhfo_module;
     data.mhddl_main = unsafe { GetProcAddress(data.mhfo_module, s!("mhDLL_Main")) };
     let proc = data.mhddl_main.ok_or(Error::ProcNotFound)?;

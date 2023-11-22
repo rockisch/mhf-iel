@@ -17,7 +17,8 @@ pub fn bufcopy<T: Copy>(s: &mut [T], v: &[T]) {
 }
 
 pub fn get_mutex_name(s: &str) -> String {
-    format!("Monster Hunter Frontier Z {s}")
+    let pid = std::process::id();
+    format!("Monster Hunter Frontier Z {s} {pid}")
 }
 
 pub fn create_mutex(name: impl Into<HSTRING>) -> Result<HANDLE> {
