@@ -18,6 +18,7 @@ pub fn bufcopy<T: Copy>(s: &mut [T], v: &[T]) {
 
 pub fn get_mutex_name(s: &str) -> String {
     let pid = std::process::id();
+    // F5 uses 'Monster Hunter Frontier Online', but it's probably fine
     format!("Monster Hunter Frontier Z {s} {pid}")
 }
 

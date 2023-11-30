@@ -76,6 +76,7 @@ pub struct MhfConfig {
     pub char_hr: u32,
     pub char_ids: Vec<u32>,
     pub char_new: bool,
+    pub user_token_id: u32,
     pub user_token: String,
     pub user_name: String,
     pub user_password: String,
