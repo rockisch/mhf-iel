@@ -3,6 +3,7 @@ from functools import partial
 import time
 import tkinter as tk
 from tkinter import ttk
+import os
 
 import requests
 
@@ -11,7 +12,11 @@ ENDPOINT = "http://127.0.0.1:8080"
 
 
 def boot_and_exit(char_id, char_new, token):
-    subprocess.Popen(["./mhf-iel.exe", str(char_id), str(int(char_new)), token])
+    if (os.name=='nt'):
+        subprocess.Popen(["./mhf-iel.exe", str(char_id), str(int(char_new)), token])
+    else:
+        subprocess.Popen(["wine","./mhf-iel.exe", str(char_id), str(int(char_new)), token])
+
     exit()
 
 
@@ -72,7 +77,7 @@ class LoginScreen:
         data = resp.json()
         self.frm.destroy()
 
-        CharSelectionScreen(self.root, data.get("characters", []), data["token"])
+        CharSelectionScreen(self.root, data.get("characters", []), data["user"]["token"])
 
 
 class CharSelectionScreen:
@@ -105,7 +110,7 @@ class CharSelectionScreen:
             self.error_label.destroy()
 
         try:
-            resp = requests.post(f"{ENDPOINT}/character", json={"token": self.token})
+            resp = requests.post(f"{ENDPOINT}/character/create", json={"token": self.token})
             resp.raise_for_status()
         except requests.HTTPError as e:
             self.error_label = ttk.Label(
