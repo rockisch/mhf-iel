@@ -520,6 +520,8 @@ pub fn run_mhf(config: crate::MhfConfig) -> Result<isize> {
         MhfVersion::F5 => {
             let mut data = unsafe { Box::<DataF5>::new_zeroed().assume_init() };
             let dll_name = s!("mhfo.dll");
+            // Required in order to skip initial GG check
+            std::env::set_var("JKR", "1");
             init_data!(
                 data,
                 main_module,
